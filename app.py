@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 import json
 import atexit
@@ -20,7 +19,6 @@ from models import Person,User,Permission,Rol,Rol_X_Permission,Entity,Plan,Crite
 from models import Evaluation,Evaluation_X_Indicator,Indicator,NivelComponentVariable,Evaluation_X_Question
 from models import EvaluationModifiedWeight,Criterion_X_CriticalVariable,Weight,Metric,CriticalVariable,KeyComponent
 from models import Question,Process
-ma = Marshmallow(app)
 
 @app.route("/createPerson", methods=["POST"])
 def create_Person():
@@ -35,6 +33,6 @@ def create_Person():
 @app.route("/",methods=["GET"])
 def hello_world():
     return 'Hello, World!'
-    
+
 if __name__=="__main__":
     app.run(debug=True)
