@@ -89,5 +89,14 @@ def register_Objetic():
 def hello_world():
     return 'Hello, World!'
 
-if __name__=="__main__":
-    app.run(debug=True)
+if __name__ == "__main__":
+    if platform.system()=='Linux':
+        # print(colored("Starting server deployment",'yellow'))
+        # print(colored("Check Log at /Log/checkLog",'green'))
+        # print(colored("Clear Log at /Log/clearLog",'blue'))
+        # #--For online Log-----------------
+        # sys.stdout=log 
+        # sys.stderr=log 
+        app.run(host="0.0.0.0", port=80)
+    else:
+        app.run(debug=True)
