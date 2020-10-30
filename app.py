@@ -70,7 +70,7 @@ def validated_User():
     data=request.get_json()
     email=data['email']
     password=data['password']
-
+    print(platform.system())
     user = User.get_by_email(email)
     if user.password == password: 
         person = Person.query.get(user.idPerson)
@@ -88,15 +88,16 @@ def register_Objetic():
 @app.route("/",methods=["GET"])
 def hello_world():
     return 'Hello, World!'
+    
 
 if __name__ == "__main__":
-    if platform.system()=='Linux':
+    if platform.system()=='Windows':
         # print(colored("Starting server deployment",'yellow'))
         # print(colored("Check Log at /Log/checkLog",'green'))
         # print(colored("Clear Log at /Log/clearLog",'blue'))
         # #--For online Log-----------------
         # sys.stdout=log 
         # sys.stderr=log 
-        app.run(host="0.0.0.0", port=80)
-    else:
         app.run(debug=True)
+    else:
+        app.run(host="0.0.0.0", port=8080)
