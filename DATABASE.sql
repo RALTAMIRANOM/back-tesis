@@ -1,3 +1,23 @@
+/*Rol*/
+INSERT INTO `db-tesis2`. `Rol` VALUES (1,'Administrador','Usuario que tiene los privilegios de visualizar todo los datos del sistema');
+INSERT INTO `db-tesis2`. `Rol` VALUES (2,'Evaluador','Usuario encargado de realizar las evaluaciones');
+
+/*Permission*/
+INSERT INTO `db-tesis2`. `Permission` VALUES (1,'Gestionar evaluaciones','Crear, editar y eliminar evaluaciones');
+INSERT INTO `db-tesis2`. `Permission` VALUES (2,'Gestionar usuarios','Crear, editar y eliminar usuarios');
+INSERT INTO `db-tesis2`. `Permission` VALUES (3,'Gestionar planes','Crear, editar y eliminar planes');
+INSERT INTO `db-tesis2`. `Permission` VALUES (4,'Gestionar entidades','Crear, editar y eliminar entidades');
+INSERT INTO `db-tesis2`. `Permission` VALUES (5,'Consultar evaluaciones ','Consultar evaluaciones realizadas');
+INSERT INTO `db-tesis2`. `Permission` VALUES (6,'Rendir evaluacioness','Realizar evaluaciones brindadas');
+
+/*Rol_X_Permission*/
+INSERT INTO `db-tesis2`. `Rol_X_Permission` VALUES (1,1,1);
+INSERT INTO `db-tesis2`. `Rol_X_Permission` VALUES (2,1,2);
+INSERT INTO `db-tesis2`. `Rol_X_Permission` VALUES (3,1,3);
+INSERT INTO `db-tesis2`. `Rol_X_Permission` VALUES (4,1,4);
+INSERT INTO `db-tesis2`. `Rol_X_Permission` VALUES (5,2,5);
+INSERT INTO `db-tesis2`. `Rol_X_Permission` VALUES (6,2,6);
+
 /*KeyComponent*/
 INSERT INTO `db-tesis2`. `KeyComponent` VALUES (1,'FCE','FACTORES CRiTICOS DE eXITO','Factores Criticos de exito para determinar y calcular el exito de la adopcion de Gobierno Electronico de Ewa Ziemba');
 INSERT INTO `db-tesis2`. `KeyComponent` VALUES (2,'ME','METAS EMPRESARIALES DE COBIT','Metas empresariales de la cascada de metas de COBIT 2019');

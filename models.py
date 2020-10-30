@@ -7,6 +7,7 @@ class Person(db.Model):
     name = db.Column(db.String(60), nullable=False)
     maternalSurname = db.Column(db.String(60), nullable=False)
     paternalSurname = db.Column(db.String(60), nullable=False)
+    documentNumber = db.Column(db.String(15), nullable=False)
     def save(self):
         if not self.idPerson:
             db.session.add(self)
@@ -14,7 +15,12 @@ class Person(db.Model):
     @staticmethod
     def get_by_id(idPerson):
         return Person.query.get(idPerson)
-
+    @staticmethod
+    def get_by_documentNumber(documentNumber):
+        return db.session.query(Person).filter(Person.documentNumber == documentNumber).one()
+    @staticmethod
+    def get_last_registration():
+        return db.session.query(Person).order_by(Person.idPerson.desc()).first()
 class User(db.Model):
     __tablename__ = 'User'
     idUser = db.Column(db.Integer, primary_key=True)
@@ -24,6 +30,13 @@ class User(db.Model):
     password = db.Column(db.String(45), nullable=False)
     nameCharge = db.Column(db.String(150), nullable=True)
     registerDate = db.Column(db.DateTime, nullable=False)
+    def save(self):
+        if not self.idUser:
+            db.session.add(self)
+        db.session.commit()
+    @staticmethod
+    def get_by_email(email):
+        return db.session.query(User).filter(User.email == email).one()
     @staticmethod
     def get_by_id(idUser):
         return User.query.get(idUser)
@@ -60,9 +73,16 @@ class Entity(db.Model):
     idEntity = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     address = db.Column(db.String(150), nullable=False)
+    def save(self):
+        if not self.idEntity:
+            db.session.add(self)
+        db.session.commit()
     @staticmethod
     def get_by_id(idEntity):
         return Entity.query.get(idEntity)
+    @staticmethod
+    def get_by_name(name):
+        return db.session.query(Entity).filter(Entity.name == name).one()
 
 class Plan(db.Model):
     __tablename__ = 'Plan'
@@ -111,6 +131,10 @@ class Evaluation(db.Model):
     idUser = db.Column(db.Integer, db.ForeignKey('User.idUser'), nullable=False)
     initialDate = db.Column(db.DateTime, nullable=False)
     finalDate = db.Column(db.DateTime, nullable=True)
+    def save(self):
+        if not self.idEvaluation:
+            db.session.add(self)
+        db.session.commit()
     @staticmethod
     def get_by_id(idEvaluation):
         return Evaluation.query.get(idEvaluation)
@@ -171,7 +195,7 @@ class EvaluationModifiedWeight(db.Model):
     __tablename__ = 'EvaluationModifiedWeight'
     idEvaluationModifiedWeight = db.Column(db.Integer, primary_key=True)
     idEvaluation = db.Column(db.Integer, db.ForeignKey('Evaluation.idEvaluation'), nullable=False)
-    idCriticalVariable = db.Column(db.Integer, db.ForeignKey('CriticalVariable.idCriticalVariable'), nullable=False)
+    idCriterion_X_CriticalVariable = db.Column(db.Integer, db.ForeignKey('Criterion_X_CriticalVariable.idCriterion_X_CriticalVariable'), nullable=False)
     idModifiedWeight = db.Column(db.Integer, db.ForeignKey('Weight.idWeight'), nullable=False)
     @staticmethod
     def get_by_id(idEvaluationModifiedWeight):
