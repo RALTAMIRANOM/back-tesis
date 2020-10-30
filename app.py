@@ -91,13 +91,4 @@ def hello_world():
     
 
 if __name__ == "__main__":
-    if platform.system()=='Windows':
-        # print(colored("Starting server deployment",'yellow'))
-        # print(colored("Check Log at /Log/checkLog",'green'))
-        # print(colored("Clear Log at /Log/clearLog",'blue'))
-        # #--For online Log-----------------
-        # sys.stdout=log 
-        # sys.stderr=log 
-        app.run(debug=True)
-    else:
-        app.run(host="0.0.0.0", port=8080)
+    app.run(debug=True,host="0.0.0.0", port=80)
