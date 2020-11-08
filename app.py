@@ -67,7 +67,6 @@ def create_Evaluation():
     return jsonify(result={"status": 200})
 
 @app.route("/validatedUser", methods=["GET"])
-@cross_origin(origin='localhost', headers=['Content- Type','Autorization'])
 def validated_User():
     data=request.get_json()
     email=data['email']
@@ -76,22 +75,14 @@ def validated_User():
     user = User.get_by_email(email)
     if user.password == password: 
         person = Person.query.get(user.idPerson)
-        return {'body' : json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
+        response = json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
         "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
-        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}}), 
-        'statusCode':200,
-        'headers':{
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
-        }}
+        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}})
+        response.headers.add('Access-Control-Allow-Origin','*')
     else:
-        return {'body' : json.dumps({'result':{"idPerson":-1}}), 
-        'statusCode':200,
-        'headers':{
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Origin': '*'
-        }}
+        response= json.dumps({'result':{"idPerson":-1}})
+        response.headers.add('Access-Control-Allow-Origin','*')
+    return response
 
 @app.route("/registerObjetic", methods=["POST"])
 def register_Objetic():
