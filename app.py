@@ -14,7 +14,6 @@ CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin123@db-tesis2.csgxfrcls4o7.us-east-1.rds.amazonaws.com/db-tesis2'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True 
-app.config['CORS_HEADERS'] = 'Content-Type'
 
 db = SQLAlchemy(app)
 from models import Person,User,Permission,Rol,Rol_X_Permission,Entity,Plan,Criterion,ObjectiveStrategic
@@ -54,10 +53,8 @@ def create_Evaluation():
     idPlan=data['idPlan']
     idUser=data['idUser']
     initialDate=date.today()
-
     entity = Entity(name=nameEntity, address=addressEntity)
     entity.save()
-
     entity_evaluation= Entity.get_by_name(nameEntity)
     idEntity=entity_evaluation.idEntity
     #date.today().strftime("%d/%m/%Y")
@@ -66,7 +63,7 @@ def create_Evaluation():
 
     return jsonify(result={"status": 200})
 
-@app.route("/validatedUser", methods=["GET","OPTIONS"])
+@app.route("/validatedUser", methods=["GET"])
 def validated_User():
     data=request.get_json()
     email=data['email']
@@ -75,19 +72,38 @@ def validated_User():
     user = User.get_by_email(email)
     if user.password == password: 
         person = Person.query.get(user.idPerson)
-        response = jsonify({'result':{"idPerson":person.idPerson, "name":person.name,
+        return json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
         "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
         "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}})
-        response.headers.add('Access-Control-Allow-Origin','*')
     else:
-        response =  jsonify({'result':{"idPerson":-1}})
-        response.headers.add('Access-Control-Allow-Origin','*')
-    return response
+        return json.dumps({'result':{"idPerson":-1}})
 
 @app.route("/registerObjetic", methods=["POST"])
 def register_Objetic():
     data=request.get_json()
 
+@app.route("/getCriterion", methods=["GET"])
+def get_Crtierion():
+    data=request.get_json()
+    idPlan=data['idPlan']
+    print(platform.system())
+    criterions = Criterion.get_by_Plan(idPlan)
+    criterions_list = []
+    for criterion in criterions:
+        criterion_dict={}
+        criterion_dict['idCriterion']=criterion.idCriterion
+        criterion_dict['code']=criterion.code
+        criterion_dict['name']=criterion.name
+        criterion_dict['description']=criterion.description
+        criterions_list.append(criterion_dict)
+    return jsonify({'criterions':criterions_list})
+'''     if user.password == password: 
+        person = Person.query.get(user.idPerson)
+        return json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
+        "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
+        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}})
+    else:
+        return json.dumps({'result':{"idPerson":-1}}) '''
 
 @app.route("/",methods=["GET"])
 def hello_world():

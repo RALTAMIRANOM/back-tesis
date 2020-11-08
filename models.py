@@ -106,6 +106,9 @@ class Criterion(db.Model):
             db.session.add(self)
         db.session.commit()
     @staticmethod
+    def get_by_Plan(idPlan):
+        return db.session.query(Criterion).filter(Criterion.idPlan == idPlan).all()
+    @staticmethod
     def get_by_id(idCriterion):
         return Criterion.query.get(idCriterion)
 
