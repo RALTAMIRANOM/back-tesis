@@ -14,6 +14,7 @@ CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin123@db-tesis2.csgxfrcls4o7.us-east-1.rds.amazonaws.com/db-tesis2'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True 
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 db = SQLAlchemy(app)
 from models import Person,User,Permission,Rol,Rol_X_Permission,Entity,Plan,Criterion,ObjectiveStrategic
@@ -66,6 +67,7 @@ def create_Evaluation():
     return jsonify(result={"status": 200})
 
 @app.route("/validatedUser", methods=["GET"])
+@cross_origin(origin='localhost', headers=['Content- Type','Autorization'])
 def validated_User():
     data=request.get_json()
     email=data['email']
