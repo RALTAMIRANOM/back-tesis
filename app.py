@@ -74,11 +74,21 @@ def validated_User():
     user = User.get_by_email(email)
     if user.password == password: 
         person = Person.query.get(user.idPerson)
-        return json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
+        return {'body' : json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
         "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
-        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}})
+        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}}), 
+        'statusCode':200,
+        'headers':{
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*'
+        }}
     else:
-        return json.dumps({'result':{"idPerson":-1}})
+        return {'body' : json.dumps({'result':{"idPerson":-1}}), 
+        'statusCode':200,
+        'headers':{
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*'
+        }}
 
 @app.route("/registerObjetic", methods=["POST"])
 def register_Objetic():
