@@ -78,7 +78,7 @@ def validated_User():
         "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
         "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}})
     else:
-        return jsonify(result={"error": 400})
+        return json.dumps({'result':{"idPerson":-1}})
 
 @app.route("/registerObjetic", methods=["POST"])
 def register_Objetic():
