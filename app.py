@@ -75,12 +75,12 @@ def validated_User():
     user = User.get_by_email(email)
     if user.password == password: 
         person = Person.query.get(user.idPerson)
-        response = json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
+        response = jsonify({'result':{"idPerson":person.idPerson, "name":person.name,
         "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
         "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}})
         response.headers.add('Access-Control-Allow-Origin','*')
     else:
-        response= json.dumps({'result':{"idPerson":-1}})
+        response =  jsonify({'result':{"idPerson":-1}})
         response.headers.add('Access-Control-Allow-Origin','*')
     return response
 
