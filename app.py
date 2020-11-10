@@ -153,7 +153,6 @@ def consult_Weight_Modify():
                 evaluationModifiedWeightList=[]
                 evaluationModifiedWeightList.append(weightModify[0].idEvaluationModifiedWeight)
                 weight_dict['evaluationModifiedWeightId']=evaluationModifiedWeightList
-                #añadir a lista
                 weightModify_list.append(weight_dict)
     print(weightModify_list)
     return jsonify({'weightModify':weightModify_list})
