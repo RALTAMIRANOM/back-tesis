@@ -160,10 +160,6 @@ def consult_Weight_Modify():
     return jsonify({'weightModify':weightModify_list})
 
 #modificar la tabla pesos modificados
-@app.route("/modifyWeight", methods=["POST"])
-def modify_Weight():
-    data=request.get_json()
-    idEvaluation = data['idEvaluation']
 
 #mandar componentes clave, variable critica -> preguntas con respuestas guardadas
 #guardar las respuestas x variable critica
