@@ -80,13 +80,27 @@ def validated_User():
     password=data['password']
     print(platform.system())
     user = User.get_by_email(email)
+    
     if user.password == password: 
         person = Person.query.get(user.idPerson)
-        return json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
+        """ return json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
         "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
-        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}})
+        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}}) """
+        response = app.response_class(
+           response=json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
+        "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
+        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}}),
+           status=200,
+           mimetype='application/json'
+        )
+
     else:
-        return json.dumps({'result':{"idPerson":-1}})
+        response = app.response_class(
+           response=json.dumps({'result':{"idPerson": -1}}),
+           status=200,
+           mimetype='application/json'
+    )
+    return response
 
 @app.route("/registerObjectives", methods=["POST"])
 def register_Objectives():
