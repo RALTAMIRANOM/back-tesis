@@ -73,7 +73,8 @@ def create_Evaluation():
         modifyWeight.save()
     return jsonify(result={"status": 200})
 
-@app.route("/validatedUser", methods=["GET"])
+#@app.route("/validatedUser", methods=["GET"])
+@app.route("/validatedUser", methods=["POST"])
 def validated_User():
     data=request.get_json()
     email=data['email']
@@ -114,7 +115,8 @@ def register_Objectives():
     return jsonify(result={"status": 200})
 
 #consultar la tabla pesos modificados
-@app.route("/consultWeightModify", methods=["GET"])
+#@app.route("/consultWeightModify", methods=["GET"])
+@app.route("/consultWeightModify", methods=["POST"])
 def consult_Weight_Modify():
     data=request.get_json()
     idEvaluation = data['idEvaluation']
@@ -178,7 +180,8 @@ def consult_Weight_Modify():
 #Enviar resultados de criterio x objetivo
 #Enviar resultado global
 #Envair Resultado por grafico
-@app.route("/getCriterion", methods=["GET"])
+#@app.route("/getCriterion", methods=["GET"])
+@app.route("/getCriterion", methods=["POST"])
 def get_Crtierion():
     data=request.get_json()
     idPlan=data['idPlan']
