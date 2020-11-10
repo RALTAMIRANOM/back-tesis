@@ -10,7 +10,9 @@ import sys
 import platform
 
 app = Flask(__name__)
-CORS(app)
+#CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin123@db-tesis2.csgxfrcls4o7.us-east-1.rds.amazonaws.com/db-tesis2'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True 
@@ -59,8 +61,16 @@ def create_Evaluation():
     idEntity=entity_evaluation.idEntity
     #date.today().strftime("%d/%m/%Y")
     evaluation = Evaluation(idEntity=idEntity, idPlan=idPlan,idUser=idUser,initialDate=initialDate)
-    evaluation.save()
-
+    evaluation.save()  
+    lastEvaluation=Evaluation.get_last_registration()
+    criterionList = db.session.query(Criterion_X_CriticalVariable,Criterion).\
+        join(Criterion_X_CriticalVariable.criterion).filter(Criterion.idPlan==idPlan).all()
+    for criterion in criterionList :
+        modifyWeight = EvaluationModifiedWeight(idCriterion_X_CriticalVariable=criterion[0].idCriterion_X_CriticalVariable,
+        idEvaluation=lastEvaluation.idEvaluation,
+        idModifiedWeight=criterion[0].idWeight
+        )
+        modifyWeight.save()
     return jsonify(result={"status": 200})
 
 @app.route("/validatedUser", methods=["GET"])
@@ -78,10 +88,88 @@ def validated_User():
     else:
         return json.dumps({'result':{"idPerson":-1}})
 
-@app.route("/registerObjetic", methods=["POST"])
-def register_Objetic():
+@app.route("/registerObjectives", methods=["POST"])
+def register_Objectives():
     data=request.get_json()
+    print(data)
+    for objective in data['objectives']:
+        objective_row = ObjectiveStrategic(idCriterion=objective['idCriterion'],
+                                           idEvaluation=objective['idEvaluation'],
+                                           description=objective['description'])
+        objective_row.save()
+    return jsonify(result={"status": 200})
 
+#consultar la tabla pesos modificados
+@app.route("/consultWeightModify", methods=["GET"])
+def consult_Weight_Modify():
+    data=request.get_json()
+    idEvaluation = data['idEvaluation']
+    weightModifys = db.session.query(EvaluationModifiedWeight,
+    Criterion_X_CriticalVariable,Criterion,CriticalVariable,
+    KeyComponent,Weight).\
+        join(EvaluationModifiedWeight.criterion_X_CriticalVariable,
+        Criterion_X_CriticalVariable.criterion,
+        Criterion_X_CriticalVariable.criticalVariable,CriticalVariable.keyComponent,
+        EvaluationModifiedWeight.weight).\
+            filter(EvaluationModifiedWeight.idEvaluation == idEvaluation).\
+                order_by(CriticalVariable.idCriticalVariable.asc()).all()    
+    weightModify_list = []
+    criticalVariable_list = []
+    first_time = True
+    for weightModify in weightModifys:
+       
+        if(first_time):
+            weight_dict = {}
+            weight_dict['keyComponent'] = weightModify[4].code
+            weight_dict['criticalVariableId'] = weightModify[3].idCriticalVariable
+            weight_dict['criticalVariableName'] = weightModify[3].name
+            #lista de id de pesos
+            weightList=[]
+            weightList.append(weightModify[0].idModifiedWeight - 1)
+            weight_dict['weights'] =  weightList
+            #lista de id de evaluacionModifiedWeight
+            evaluationModifiedWeightList=[]
+            evaluationModifiedWeightList.append(weightModify[0].idEvaluationModifiedWeight)
+            weight_dict['evaluationModifiedWeightId']=evaluationModifiedWeightList
+            #añadir a lista
+            weightModify_list.append(weight_dict)
+            first_time=False
+            criticalVariable_list.append(weightModify[3])
+        else:
+            #se valida la variable critica
+            if(weightModify[3] in criticalVariable_list):
+                weightModify_list[-1]['weights'].append(weightModify[0].idModifiedWeight - 1)
+                weightModify_list[-1]['evaluationModifiedWeightId'].append(weightModify[0].idEvaluationModifiedWeight)
+            else:
+                criticalVariable_list.append(weightModify[3])
+                weight_dict = {}
+                weight_dict['keyComponent'] = weightModify[4].code
+                weight_dict['criticalVariableId'] = weightModify[3].idCriticalVariable
+                weight_dict['criticalVariableName'] = weightModify[3].name
+                #lista de id de pesos
+                weightList=[]
+                weightList.append(weightModify[0].idModifiedWeight - 1)
+                weight_dict['weights'] =  weightList
+                #lista de id de evaluacionModifiedWeight
+                evaluationModifiedWeightList=[]
+                evaluationModifiedWeightList.append(weightModify[0].idEvaluationModifiedWeight)
+                weight_dict['evaluationModifiedWeightId']=evaluationModifiedWeightList
+                #añadir a lista
+                weightModify_list.append(weight_dict)
+    print(weightModify_list)
+    return jsonify({'weightModify':weightModify_list})
+
+#modificar la tabla pesos modificados
+@app.route("/modifyWeight", methods=["POST"])
+def modify_Weight():
+    data=request.get_json()
+    idEvaluation = data['idEvaluation']
+
+#mandar componentes clave, variable critica -> preguntas con respuestas guardadas
+#guardar las respuestas x variable critica
+#Enviar resultados de criterio x objetivo
+#Enviar resultado global
+#Envair Resultado por grafico
 @app.route("/getCriterion", methods=["GET"])
 def get_Crtierion():
     data=request.get_json()
@@ -97,13 +185,13 @@ def get_Crtierion():
         criterion_dict['description']=criterion.description
         criterions_list.append(criterion_dict)
     return jsonify({'criterions':criterions_list})
-'''     if user.password == password: 
-        person = Person.query.get(user.idPerson)
-        return json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
-        "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
-        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}})
-    else:
-        return json.dumps({'result':{"idPerson":-1}}) '''
+
+@app.route("/test",methods=["GET"])
+def test():
+    prueba = db.session.query(Criterion_X_CriticalVariable,Criterion).\
+        join(Criterion_X_CriticalVariable.criterion).filter(Criterion.idPlan==1).all()
+    print (prueba[0][0].idWeight)
+    return prueba[0][0].idWeight
 
 @app.route("/",methods=["GET"])
 def hello_world():
@@ -112,4 +200,4 @@ def hello_world():
 
 if __name__ == "__main__":
     
-        app.run(debug=True,host="0.0.0.0", port=80)
+    app.run(debug=True,host="0.0.0.0", port=80)

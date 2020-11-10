@@ -141,6 +141,9 @@ class Evaluation(db.Model):
     @staticmethod
     def get_by_id(idEvaluation):
         return Evaluation.query.get(idEvaluation)
+    @staticmethod
+    def get_last_registration():
+        return db.session.query(Evaluation).order_by(Evaluation.idEvaluation.desc()).first()
 
 class Evaluation_X_Indicator(db.Model):
     __tablename__ = 'Evaluation_X_Indicator'
@@ -200,6 +203,12 @@ class EvaluationModifiedWeight(db.Model):
     idEvaluation = db.Column(db.Integer, db.ForeignKey('Evaluation.idEvaluation'), nullable=False)
     idCriterion_X_CriticalVariable = db.Column(db.Integer, db.ForeignKey('Criterion_X_CriticalVariable.idCriterion_X_CriticalVariable'), nullable=False)
     idModifiedWeight = db.Column(db.Integer, db.ForeignKey('Weight.idWeight'), nullable=False)
+    criterion_X_CriticalVariable = db.relationship('Criterion_X_CriticalVariable')
+    weight = db.relationship('Weight')
+    def save(self):
+        if not self.idEvaluationModifiedWeight:
+            db.session.add(self)
+        db.session.commit()
     @staticmethod
     def get_by_id(idEvaluationModifiedWeight):
         return EvaluationModifiedWeight.query.get(idEvaluationModifiedWeight)
@@ -210,6 +219,8 @@ class Criterion_X_CriticalVariable(db.Model):
     idCriterion = db.Column(db.Integer, db.ForeignKey('Criterion.idCriterion'), nullable=False)
     idCriticalVariable = db.Column(db.Integer, db.ForeignKey('CriticalVariable.idCriticalVariable'), nullable=False)
     idWeight = db.Column(db.Integer, db.ForeignKey('Weight.idWeight'), nullable=False)
+    criterion = db.relationship('Criterion')
+    criticalVariable = db.relationship('CriticalVariable')
     def save(self):
         if not self.idCriterion_X_CriticalVariable:
             db.session.add(self)
@@ -249,6 +260,7 @@ class CriticalVariable(db.Model):
     idCriticalVariable = db.Column(db.Integer, primary_key=True)
     idKeyComponent = db.Column(db.Integer, db.ForeignKey('KeyComponent.idKeyComponent'), nullable=False)
     name = db.Column(db.String(150), nullable=False)
+    keyComponent = db.relationship('KeyComponent')
     def save(self):
         if not self.idCriticalVariable:
             db.session.add(self)
