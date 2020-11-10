@@ -131,7 +131,6 @@ def consult_Weight_Modify():
             evaluationModifiedWeightList=[]
             evaluationModifiedWeightList.append(weightModify[0].idEvaluationModifiedWeight)
             weight_dict['evaluationModifiedWeightId']=evaluationModifiedWeightList
-            #añadir a lista
             weightModify_list.append(weight_dict)
             first_time=False
             criticalVariable_list.append(weightModify[3])
