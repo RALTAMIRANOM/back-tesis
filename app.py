@@ -194,12 +194,12 @@ def get_Crtierion():
         criterions_list.append(criterion_dict)
     return jsonify({'criterions':criterions_list})
 
-@app.route("/test",methods=["GET"])
+@app.route("/test",methods=["POST"])
 def test():
     prueba = db.session.query(Criterion_X_CriticalVariable,Criterion).\
         join(Criterion_X_CriticalVariable.criterion).filter(Criterion.idPlan==1).all()
     print (prueba[0][0].idWeight)
-    return prueba[0][0].idWeight
+    return jsonify(prueba[0][0].idWeight)
 
 @app.route("/",methods=["GET"])
 def hello_world():
