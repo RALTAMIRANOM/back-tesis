@@ -74,7 +74,7 @@ def create_Evaluation():
     return jsonify(result={"status": 200})
 
 #@app.route("/validatedUser", methods=["GET"])
-@app.route("/validatedUser", methods=["POST"])
+@app.route("/validatedUser", methods=["GET"])
 def validated_User():
     data=request.get_json()
     email=data['email']
