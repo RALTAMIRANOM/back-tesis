@@ -82,7 +82,7 @@ def validated_User():
     print(platform.system())
     user = User.get_by_email(email)
     
-    if user.password == password: 
+    if (user.password == password and user.email == email): 
         person = Person.query.get(user.idPerson)
         """ return json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
         "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
