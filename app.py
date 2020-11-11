@@ -22,6 +22,7 @@ from models import Person,User,Permission,Rol,Rol_X_Permission,Entity,Plan,Crite
 from models import Evaluation,Evaluation_X_Indicator,Indicator,NivelComponentVariable,Evaluation_X_Question
 from models import EvaluationModifiedWeight,Criterion_X_CriticalVariable,Weight,Metric,CriticalVariable,KeyComponent
 from models import Question,Process
+from sqlalchemy.orm.exc import NoResultFound
 
 @app.route("/createUser", methods=["POST"])
 def create_User():
@@ -76,32 +77,40 @@ def create_Evaluation():
 #@app.route("/validatedUser", methods=["GET"])
 @app.route("/validatedUser", methods=["POST"])
 def validated_User():
-    data=request.get_json()
-    email=data['email']
-    password=data['password']
-    print(platform.system())
-    user = User.get_by_email(email)
-    
-    if (user.password == password and user.email == email): 
-        person = Person.query.get(user.idPerson)
-        """ return json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
-        "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
-        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}}) """
-        response = app.response_class(
-           response=json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
-        "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
-        "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}}),
-           status=200,
-           mimetype='application/json'
-        )
+    try:
+        data=request.get_json()
+        email=data['email']
+        password=data['password']
+        print(platform.system())
+        user = User.get_by_email(email)
+        
+        if (user.password == password and user.email == email): 
+            person = Person.query.get(user.idPerson)
+            """ return json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
+            "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
+            "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}}) """
+            response = app.response_class(
+            response=json.dumps({'result':{"idPerson":person.idPerson, "name":person.name,
+            "maternalSurname":person.maternalSurname, "paternalSurname":person.paternalSurname,
+            "documentNumber":person.documentNumber,"email": user.email,"nameCharge":user.nameCharge,"idRol":user.idRol}}),
+            status=200,
+            mimetype='application/json'
+            )
 
-    else:
-        response = app.response_class(
-           response=json.dumps({'result':{"idPerson": -1}}),
-           status=200,
-           mimetype='application/json'
-    )
-    return response
+        else:
+            response = app.response_class(
+            response=json.dumps({'result':{"idPerson": -1}}),
+            status=200,
+            mimetype='application/json'
+        )
+        return response
+    except Exception as e:
+            response = app.response_class(
+            response=json.dumps({'result':{"idPerson": -1}}),
+            status=200,
+            mimetype='application/json'
+            )
+            return  response
 
 @app.route("/registerObjectives", methods=["POST"])
 def register_Objectives():
