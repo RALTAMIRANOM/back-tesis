@@ -156,6 +156,10 @@ class Evaluation_X_Indicator(db.Model):
     frequencyYear = db.Column(db.Integer, nullable=True)
     standard = db.Column(db.String(200), nullable=True)
     interpretation = db.Column(db.String(200), nullable=True)
+    def save(self):
+        if not self.idEvaluation_X_Indicator:
+            db.session.add(self)
+        db.session.commit()
     @staticmethod
     def get_by_id(idEvaluation_X_Indicator):
         return Evaluation_X_Indicator.query.get(idEvaluation_X_Indicator)
@@ -193,6 +197,11 @@ class Evaluation_X_Question(db.Model):
     idEvaluation = db.Column(db.Integer, db.ForeignKey('Evaluation.idEvaluation'), nullable=False)
     idQuestion = db.Column(db.Integer, db.ForeignKey('Question.idQuestion'), nullable=False)
     answer = db.Column(db.Integer, nullable=False)
+    question = db.relationship('Question')
+    def save(self):
+        if not self.idEvaluation_X_Question:
+            db.session.add(self)
+        db.session.commit()
     @staticmethod
     def get_by_id(idEvaluation_X_Question):
         return Evaluation_X_Question.query.get(idEvaluation_X_Question)
@@ -289,6 +298,8 @@ class Question(db.Model):
     idCriticalVariable = db.Column(db.Integer, db.ForeignKey('CriticalVariable.idCriticalVariable'), nullable=False)
     idProcess = db.Column(db.Integer, db.ForeignKey('Process.idProcess'), nullable=True)
     name = db.Column(db.Text(), nullable=False)
+    criticalVariable = db.relationship('CriticalVariable')
+    process = db.relationship('Process')
     def save(self):
         if not self.idQuestion:
             db.session.add(self)

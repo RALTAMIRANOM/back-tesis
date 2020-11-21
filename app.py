@@ -50,29 +50,43 @@ def create_User():
 
 @app.route("/createEvaluation", methods=["POST"])
 def create_Evaluation():
-    data=request.get_json()
-    nameEntity=data['nameEntity']
-    addressEntity=data['addressEntity']
-    idPlan=data['idPlan']
-    idUser=data['idUser']
-    initialDate=date.today()
-    entity = Entity(name=nameEntity, address=addressEntity)
-    entity.save()
-    entity_evaluation= Entity.get_by_name(nameEntity)
-    idEntity=entity_evaluation.idEntity
-    #date.today().strftime("%d/%m/%Y")
-    evaluation = Evaluation(idEntity=idEntity, idPlan=idPlan,idUser=idUser,initialDate=initialDate)
-    evaluation.save()  
-    lastEvaluation=Evaluation.get_last_registration()
-    criterionList = db.session.query(Criterion_X_CriticalVariable,Criterion).\
-        join(Criterion_X_CriticalVariable.criterion).filter(Criterion.idPlan==idPlan).all()
-    for criterion in criterionList :
-        modifyWeight = EvaluationModifiedWeight(idCriterion_X_CriticalVariable=criterion[0].idCriterion_X_CriticalVariable,
-        idEvaluation=lastEvaluation.idEvaluation,
-        idModifiedWeight=criterion[0].idWeight
-        )
-        modifyWeight.save()
-    return jsonify(result={"status": 200})
+    try:
+        data=request.get_json()
+        nameEntity=data['nameEntity']
+        addressEntity=data['addressEntity']
+        idPlan=data['idPlan']
+        idUser=data['idUser']
+        initialDate=date.today()
+        entity = Entity(name=nameEntity, address=addressEntity)
+        entity.save()
+        entity_evaluation= Entity.get_by_name(nameEntity)
+        idEntity=entity_evaluation.idEntity
+        #date.today().strftime("%d/%m/%Y")
+        evaluation = Evaluation(idEntity=idEntity, idPlan=idPlan,idUser=idUser,initialDate=initialDate)
+        evaluation.save()  
+        lastEvaluation=Evaluation.get_last_registration()
+        criterionList = db.session.query(Criterion_X_CriticalVariable,Criterion).\
+            join(Criterion_X_CriticalVariable.criterion).filter(Criterion.idPlan==idPlan).all()
+        for criterion in criterionList :
+            modifyWeight = EvaluationModifiedWeight(idCriterion_X_CriticalVariable=criterion[0].idCriterion_X_CriticalVariable,
+            idEvaluation=lastEvaluation.idEvaluation,
+            idModifiedWeight=criterion[0].idWeight
+            )
+            modifyWeight.save()
+        indicatorList = db.session.query(Indicator).order_by(Indicator.idIndicator.asc()).all()
+        for indicator in indicatorList :
+            evaluation_indicator = Evaluation_X_Indicator(idIndicator=indicator.idIndicator,
+            idEvaluation=lastEvaluation.idEvaluation)
+            evaluation_indicator.save()
+        questionList = db.session.query(Question).order_by(Question.idQuestion.asc()).all()
+        for question in questionList :
+            evaluation_question = Evaluation_X_Question(idQuestion=question.idQuestion,
+            idEvaluation=lastEvaluation.idEvaluation,answer=-1)
+            evaluation_question.save()
+        
+        return jsonify(result={"status": 200})
+    except Exception as e:
+        return jsonify(result={"error": 400})
 
 #@app.route("/validatedUser", methods=["GET"])
 @app.route("/validatedUser", methods=["POST"])
@@ -183,9 +197,146 @@ def consult_Weight_Modify():
     return jsonify({'weightModify':weightModify_list})
 
 #modificar la tabla pesos modificados
+@app.route("/modifyWeight", methods=["POST"])
+def modify_Weight():
+    try:
+        data=request.get_json()
+        listids=data['evaluationModifiedWeightId']
+        listweights=data['weights']
+        cont= 0
+        for listid in listids:
+            x = db.session.query(EvaluationModifiedWeight).get(listid)
+            x.idModifiedWeight = listweights[cont] + 1
+            cont += 1
+        db.session.commit()
+        return jsonify(result={"status": 200})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(result={"error": 400})
 
 #mandar componentes clave, variable critica -> preguntas con respuestas guardadas
+@app.route("/consultQuestionary", methods=["POST"])
+def consult_Questionary():
+    try:
+        data=request.get_json()
+        idEvaluation = data['idEvaluation']
+        #realizar los cruces
+        questionaries = db.session.query(Evaluation_X_Question,
+        Question,CriticalVariable,KeyComponent).\
+            join(Evaluation_X_Question.question,
+            Question.criticalVariable,CriticalVariable.keyComponent).\
+                filter(Evaluation_X_Question.idEvaluation == idEvaluation).\
+                    order_by(Evaluation_X_Question.idEvaluation_X_Question.asc()).all()
+        
+        questionary_list = []
+        keyComponent_list = []
+        variableCritical_list = []
+        first_time = True
+        #codigo
+        #nombre de key
+        #subcategorias
+            #nombre de vc
+            #preguntas :[{texto:,respuesta:, codigo:}]
+
+        for questionary in questionaries:
+            
+            if(first_time):
+                questionary_dict = {}
+                questionary_dict['codigo'] = questionary[3].idKeyComponent
+                questionary_dict['nombre'] = questionary[3].name
+                #lista de vc
+                variableCritical_dict = {}
+                variableCritical_dict['nombre'] = questionary[2].name
+                variableCritical_dict['preguntas'] = []
+                #lista de preguntas
+                question_dict = {}
+                question_dict['texto'] = questionary[1].name
+                question_dict['respuesta'] = questionary[0].answer
+                question_dict['id'] = questionary[0].idEvaluation_X_Question
+                variableCritical_dict['preguntas'].append(question_dict)
+                #Se agrupa en subcategoria    
+                subcategory_list = []  
+                subcategory_list.append(variableCritical_dict)
+
+                questionary_dict['subcategorias'] = subcategory_list
+                questionary_list.append(questionary_dict)
+                first_time=False
+                keyComponent_list.append(questionary[3])
+                variableCritical_list.append(questionary[2])
+            else:
+                #se valida la variable critica
+                if(questionary[3] in keyComponent_list):
+                    if(questionary[2] in variableCritical_list):
+                        #lista de preguntas
+                        question_dict = {}
+                        question_dict['texto'] = questionary[1].name
+                        question_dict['respuesta'] = questionary[0].answer
+                        question_dict['id'] = questionary[0].idEvaluation_X_Question
+                        questionary_list[-1]['subcategorias'][-1]['preguntas'].append(question_dict)
+                    else:
+                        variableCritical_list.append(questionary[2])
+                        variableCritical_dict = {}
+                        variableCritical_dict['nombre'] = questionary[2].name
+                        variableCritical_dict['preguntas'] = []
+                        #lista de preguntas
+                        question_dict = {}
+                        question_dict['texto'] = questionary[1].name
+                        question_dict['respuesta'] = questionary[0].answer
+                        question_dict['id'] = questionary[0].idEvaluation_X_Question
+                        variableCritical_dict['preguntas'].append(question_dict)
+                        #Se agrupa en subcategoria 
+                        questionary_list[-1]['subcategorias'].append(variableCritical_dict)
+
+                else:
+                    keyComponent_list.append(questionary[3])
+                    variableCritical_list.append(questionary[2])
+                    #lista de vc
+                    questionary_dict = {}
+                    questionary_dict['codigo'] = questionary[3].idKeyComponent
+                    questionary_dict['nombre'] = questionary[3].name
+                    #lista de vc
+                    variableCritical_dict = {}
+                    variableCritical_dict['nombre'] = questionary[2].name
+                    variableCritical_dict['preguntas'] = []
+                    #lista de preguntas
+                    question_dict = {}
+                    question_dict['texto'] = questionary[1].name
+                    question_dict['respuesta'] = questionary[0].answer
+                    question_dict['id'] = questionary[0].idEvaluation_X_Question
+                    variableCritical_dict['preguntas'].append(question_dict)
+                    #Se agrupa en subcategoria 
+                    subcategory_list = []  
+                    subcategory_list.append(variableCritical_dict)
+
+                    questionary_dict['subcategorias'] = subcategory_list
+                    questionary_list.append(questionary_dict)
+        
+        print(questionary_list)
+        print(questionaries)
+        return jsonify({'questionary':questionary_list})
+    except Exception as e:
+        return jsonify({'questionary':[ {"codigo":-1}]})
+
+
 #guardar las respuestas x variable critica
+@app.route("/saveAnswer", methods=["POST"])
+def save_Answer():
+    try:
+        data=request.get_json()
+        listids=data['questiontId']
+        listanswers=data['answers']
+        cont= 0
+        for listid in listids:
+            x = db.session.query(Evaluation_X_Question).get(listid)
+            x.answer = listanswers[cont]
+            cont += 1
+        db.session.commit()
+        return jsonify(result={"status": 200})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(result={"error": 400})
+
+#consulta de evaluaciones
 #Enviar resultados de criterio x objetivo
 #Enviar resultado global
 #Envair Resultado por grafico
