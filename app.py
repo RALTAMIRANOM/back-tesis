@@ -400,7 +400,7 @@ def answers_question():
             
             if(first_time):
 
-                #puntuación
+                #puntuacion
                 puntation_dict = {}
                 puntation_dict['id'] = questionary[2].idCriticalVariable
                 puntation_dict['nombre'] = questionary[2].name
