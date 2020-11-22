@@ -431,7 +431,7 @@ def answers_question():
                     variableCritical_list.append(questionary[2])
                     answertrue = 0
                     total = 0                  
-                    #puntuación
+                    #puntuacion
                     puntation_dict = {}
                     puntation_dict['id'] = questionary[2].idCriticalVariable
                     puntation_dict['nombre'] = questionary[2].name
@@ -519,7 +519,7 @@ def puntuation():
 
 #Enviar resultado global
 
-#Envair Resultado por grafico
+#Enviar Resultado por grafico
 #@app.route("/getCriterion", methods=["GET"])
 @app.route("/getCriterion", methods=["POST"])
 def get_Crtierion():
