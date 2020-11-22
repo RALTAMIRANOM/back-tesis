@@ -2,6 +2,16 @@
 INSERT INTO `db-tesis2`. `Rol` VALUES (1,'Administrador','Usuario que tiene los privilegios de visualizar todo los datos del sistema');
 INSERT INTO `db-tesis2`. `Rol` VALUES (2,'Evaluador','Usuario encargado de realizar las evaluaciones');
 
+/*Entity*/
+INSERT INTO `db-tesis2`. `Entity` VALUES (1,'Municipalidad de Miraflores','Av Jose Larco 400, Miraflores 15074');
+INSERT INTO `db-tesis2`. `Entity` VALUES (2,'Municipalidad de Pueblo Libre','Av General Manuel I. Vivanco 859');
+INSERT INTO `db-tesis2`. `Entity` VALUES (3,'Municipalidad de Comas','Plaza de Armas de Comas, Av. Arequipa');
+
+/*Status*/
+INSERT INTO `db-tesis2`. `Status` VALUES (1,'Nuevo');
+INSERT INTO `db-tesis2`. `Status` VALUES (2,'En proceso');
+INSERT INTO `db-tesis2`. `Status` VALUES (3,'Culminado');
+
 /*Permission*/
 INSERT INTO `db-tesis2`. `Permission` VALUES (1,'Gestionar evaluaciones','Crear, editar y eliminar evaluaciones');
 INSERT INTO `db-tesis2`. `Permission` VALUES (2,'Gestionar usuarios','Crear, editar y eliminar usuarios');

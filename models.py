@@ -127,14 +127,28 @@ class ObjectiveStrategic(db.Model):
     def get_by_id(idObjectiveStrategic):
         return ObjectiveStrategic.query.get(idObjectiveStrategic)
 
+class Status(db.Model):
+    __tablename__ = 'Status'
+    idStatus = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(500), nullable=True)
+    def save(self):
+        if not self.idStatus:
+            db.session.add(self)
+        db.session.commit()
+    @staticmethod
+    def get_by_id(idStatus):
+        return Status.query.get(idStatus)
+
 class Evaluation(db.Model):
     __tablename__ = 'Evaluation'
     idEvaluation = db.Column(db.Integer, primary_key=True)
     idEntity = db.Column(db.Integer, db.ForeignKey('Entity.idEntity'), nullable=False)
     idPlan = db.Column(db.Integer, db.ForeignKey('Plan.idPlan'), nullable=False)
     idUser = db.Column(db.Integer, db.ForeignKey('User.idUser'), nullable=False)
+    idStatus = db.Column(db.Integer, db.ForeignKey('Status.idStatus'), nullable=False)
     initialDate = db.Column(db.DateTime, nullable=False)
     finalDate = db.Column(db.DateTime, nullable=True)
+    
     def save(self):
         if not self.idEvaluation:
             db.session.add(self)
@@ -170,6 +184,7 @@ class Indicator(db.Model):
     idIndicator = db.Column(db.Integer, primary_key=True)
     idCriticalVariable = db.Column(db.Integer, db.ForeignKey('CriticalVariable.idCriticalVariable'), nullable=False)
     name = db.Column(db.String(200), nullable=True)
+    criticalVariable = db.relationship('CriticalVariable')
     def save(self):
         if not self.idIndicator:
             db.session.add(self)

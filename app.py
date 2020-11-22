@@ -52,40 +52,60 @@ def create_User():
 def create_Evaluation():
     try:
         data=request.get_json()
-        nameEntity=data['nameEntity']
-        addressEntity=data['addressEntity']
+        #nameEntity=data['nameEntity']
+        #addressEntity=data['addressEntity']
+        idEntity=data['idEntity']
         idPlan=data['idPlan']
         idUser=data['idUser']
         initialDate=date.today()
-        entity = Entity(name=nameEntity, address=addressEntity)
-        entity.save()
-        entity_evaluation= Entity.get_by_name(nameEntity)
-        idEntity=entity_evaluation.idEntity
+        #entity = Entity(name=nameEntity, address=addressEntity)
+        #entity.save()
+        #entity_evaluation= Entity.get_by_name(nameEntity)
+        #idEntity=entity_evaluation.idEntity
         #date.today().strftime("%d/%m/%Y")
-        evaluation = Evaluation(idEntity=idEntity, idPlan=idPlan,idUser=idUser,initialDate=initialDate)
+        evaluation = Evaluation(idEntity=idEntity, idPlan=idPlan,idUser=idUser,idStatus=1,initialDate=initialDate)
         evaluation.save()  
         lastEvaluation=Evaluation.get_last_registration()
-        criterionList = db.session.query(Criterion_X_CriticalVariable,Criterion).\
-            join(Criterion_X_CriticalVariable.criterion).filter(Criterion.idPlan==idPlan).all()
+        criticalVariable_list =[]
+        criterion_list =[]
+        criterionList = db.session.query(Criterion_X_CriticalVariable,Criterion,CriticalVariable).\
+            join(Criterion_X_CriticalVariable.criterion,Criterion_X_CriticalVariable.criticalVariable).filter(Criterion.idPlan==idPlan).all()
         for criterion in criterionList :
             modifyWeight = EvaluationModifiedWeight(idCriterion_X_CriticalVariable=criterion[0].idCriterion_X_CriticalVariable,
             idEvaluation=lastEvaluation.idEvaluation,
             idModifiedWeight=criterion[0].idWeight
             )
             modifyWeight.save()
-        indicatorList = db.session.query(Indicator).order_by(Indicator.idIndicator.asc()).all()
+            if (criterion[2] not in criticalVariable_list):
+                criticalVariable_list.append(criterion[2])
+            if (criterion[1] not in criterion_list):
+                criterion_list.append(criterion[1])
+
+        indicatorList = db.session.query(Indicator,CriticalVariable).\
+            join(Indicator.criticalVariable).order_by(Indicator.idIndicator.asc()).all()
         for indicator in indicatorList :
-            evaluation_indicator = Evaluation_X_Indicator(idIndicator=indicator.idIndicator,
-            idEvaluation=lastEvaluation.idEvaluation)
-            evaluation_indicator.save()
-        questionList = db.session.query(Question).order_by(Question.idQuestion.asc()).all()
-        for question in questionList :
-            evaluation_question = Evaluation_X_Question(idQuestion=question.idQuestion,
-            idEvaluation=lastEvaluation.idEvaluation,answer=-1)
-            evaluation_question.save()
+            if (indicator[1] in criticalVariable_list):
+                evaluation_indicator = Evaluation_X_Indicator(idIndicator=indicator[0].idIndicator,
+                idEvaluation=lastEvaluation.idEvaluation)
+                evaluation_indicator.save()
         
+        questionList = db.session.query(Question,CriticalVariable).\
+            join(Question.criticalVariable).order_by(Question.idQuestion.asc()).all()
+        for question in questionList :
+            if (question[1] in criticalVariable_list):
+                evaluation_question = Evaluation_X_Question(idQuestion=question[0].idQuestion,
+                idEvaluation=lastEvaluation.idEvaluation,answer=-1)
+                evaluation_question.save()
+
+        for crit in criterion_list:
+            objective_row = ObjectiveStrategic(idCriterion=crit.idCriterion,
+                                           idEvaluation=lastEvaluation.idEvaluation,
+                                           description="Sin Objetivo")
+            objective_row.save()
+
         return jsonify(result={"status": 200})
     except Exception as e:
+        db.session.rollback()
         return jsonify(result={"error": 400})
 
 #@app.route("/validatedUser", methods=["GET"])
@@ -128,15 +148,54 @@ def validated_User():
 
 @app.route("/registerObjectives", methods=["POST"])
 def register_Objectives():
-    data=request.get_json()
-    print(data)
-    
-    for objective in data['objectives']:
-        objective_row = ObjectiveStrategic(idCriterion=objective['idCriterion'],
-                                           idEvaluation=objective['idEvaluation'],
-                                           description=objective['description'])
-        objective_row.save()
-    return jsonify(result={"status": 200})
+    try:
+        data=request.get_json()
+        print(data)
+        
+        objectiveList = db.session.query(ObjectiveStrategic).filter(ObjectiveStrategic.idEvaluation == data['objectives'][0]['idEvaluation']).\
+                    order_by(ObjectiveStrategic.idCriterion.asc()).all()
+
+        for objective in data['objectives']:
+            for obj in objectiveList:
+                if(obj.idCriterion == objective['idCriterion']):
+                    x = db.session.query(ObjectiveStrategic).get(obj.idCriterion)
+                    x.description = objective['description']
+                    
+        x = db.session.query(Evaluation).get(data['objectives'][0]['idEvaluation'])
+        x.idStatus = 2
+        db.session.commit()
+
+        return jsonify(result={"status": 200})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(result={"error": 400})
+
+@app.route("/consultObjectives", methods=["POST"])
+def consult_Objectives():
+    try:
+        data=request.get_json()
+        idEvaluation = data['idEvaluation']
+        data=request.get_json()
+        objectives_list= []
+        print(data)
+        
+        objectiveList = db.session.query(ObjectiveStrategic).filter(ObjectiveStrategic.idEvaluation == idEvaluation).\
+                    order_by(ObjectiveStrategic.idCriterion.asc()).all()
+
+
+        for obj in objectiveList:
+            if(obj.description =="Sin Objetivo"):
+                pass
+            else:
+                obj_dict={}
+                obj_dict['idCriterion']=obj.idCriterion
+                obj_dict['description']=obj.description
+                objectives_list.append(obj_dict)
+
+        return jsonify(result={"objectives": objectives_list})
+    except Exception as e:
+        return jsonify(result={"objectives": [{"idCriterion":-1}]})
+
 
 #consultar la tabla pesos modificados
 #@app.route("/consultWeightModify", methods=["GET"])
@@ -340,7 +399,8 @@ def result():
     try:
         #lista de resultado por vc
         #ista de criterio, peso modificado , peso actual y resultado obtenido
-
+        data=request.get_json()
+        idEvaluation = data['idEvaluation']
         #criterion
         puntuation_list = puntuation()
         #nota por variable critica
@@ -373,6 +433,10 @@ def result():
             result_dict['porcDeseadoOrig'] = 100
             result_dict['porcAlcanzadoOrig'] = round((result_dict['nAlcanzadoOrig']/result_dict['nDeseadoOrig'])*100,1)
             result_list.append(result_dict)
+        x = db.session.query(Evaluation).get(idEvaluation)
+        x.idStatus = 3
+        x.finalDate = date.today()
+        db.session.commit()
         return jsonify({'result':result_list})
     except Exception as e:
         db.session.rollback()
@@ -468,9 +532,6 @@ def puntuation():
                     order_by(ObjectiveStrategic.idCriterion.asc()).all()                    
         print(objectives)
         cont = 0
-        largo = 0
-        for obj in objectives:
-            largo = largo + 1
 
         weightModifies_list=[]
         criterion_list = []
@@ -502,14 +563,10 @@ def puntuation():
                 variableCritica_dict['weightModify'] = weightModify[0].idModifiedWeight - 1
                 criterion_dict['variableCritica'] = []
                 criterion_dict['variableCritica'].append(variableCritica_dict)
-                if cont < largo:
-                    if(objectives[cont][1] in criterion_list):
-                        criterion_dict['objetive'] = objectives[cont][0].description
-                        cont=cont+1
-                    else:
-                        criterion_dict['objetive'] = "Sin objetivo"
-                else:
-                    criterion_dict['objetive'] = "Sin objetivo"
+
+                criterion_dict['objetive'] = objectives[cont][0].description
+                cont=cont+1
+
                 weightModifies_list.append(criterion_dict)             
 
         #print (weightModifys)
