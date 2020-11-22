@@ -392,6 +392,36 @@ def save_Answer():
         return jsonify(result={"error": 400})
 
 #consulta de evaluaciones
+@app.route("/consultEvaluation", methods=["POST"])
+def consult_Evaluation():
+    try:
+        data=request.get_json()
+        idUser = data['idUser']
+        evaluations =db.session.query(Evaluation).\
+            filter(Evaluation.idUser == idUser).\
+                    order_by(Evaluation.idStatus.asc()).all()
+        phase_1_list=[]
+        phase_2_list=[]
+        phase_3_list=[]
+        for evaluation in evaluations:
+
+            phase_1_dict={}
+            phase_1_dict['id'] = evaluation.idEvaluation
+            phase_1_dict['idUser'] = evaluation.idUser
+            x = db.session.query(Entity).get(evaluation.idEntity)
+            phase_1_dict['nameEntity'] = x.name
+            phase_1_dict['addressEntity'] = x.address
+
+            if(evaluation.idStatus == 1):
+                phase_1_list.append(phase_1_dict)
+            else: 
+                if(evaluation.idStatus == 2):
+                    phase_2_list.append(phase_1_dict)
+                else:
+                    phase_3_list.append(phase_1_dict)
+        return jsonify(evals={"nuevas": phase_1_list,"proceso": phase_2_list,"terminadas": phase_3_list})
+    except Exception as e:
+        return jsonify(result={"error": 400})
 
 #Enviar resultados de criterio x objetivo
 @app.route("/result", methods=["POST"])
@@ -407,6 +437,12 @@ def result():
         answer_list = answers_question()
         result_list =[]
         criterion_list = []
+        resultfinal_list =[]
+        total = 0
+        totalAlcanzado = 0
+        totalOrig = 0
+        totalAlcanzadoOrig = 0
+        
         for punt in puntuation_list:
 
             result_dict = {}
@@ -433,11 +469,35 @@ def result():
             result_dict['porcDeseadoOrig'] = 100
             result_dict['porcAlcanzadoOrig'] = round((result_dict['nAlcanzadoOrig']/result_dict['nDeseadoOrig'])*100,1)
             result_list.append(result_dict)
+
+            total = total + result_dict['nDeseado']
+            totalAlcanzado = totalAlcanzado + result_dict['nAlcanzado']
+            totalOrig = totalOrig + result_dict['nDeseadoOrig']
+            totalAlcanzadoOrig = totalAlcanzadoOrig + result_dict['nAlcanzadoOrig']
+
+        resultfinal_dict = {}
+
+        resultfinal_dict['nDeseadoTotal'] = total
+        resultfinal_dict['nAlcanzadoTotal'] = totalAlcanzado
+        resultfinal_dict['porcTotal'] = round(totalAlcanzado / total,2)
+        resultfinal_dict['Puntuacion'] = NivelComponentVariable.search_nivel(totalAlcanzado / total)
+        x = db.session.query(NivelComponentVariable).get(resultfinal_dict['Puntuacion'])
+        resultfinal_dict['Etapa'] = x.phase
+
+        resultfinal_dict['nDeseadoOrigTotal'] = totalOrig
+        resultfinal_dict['nAlcanzadoOrigTotal'] = totalAlcanzadoOrig
+        resultfinal_dict['porcOrigTotal'] = round(totalAlcanzadoOrig / totalOrig,2)
+        resultfinal_dict['PuntuacionOrig']= NivelComponentVariable.search_nivel(totalAlcanzadoOrig / totalOrig)
+        x = db.session.query(NivelComponentVariable).get(resultfinal_dict['PuntuacionOrig'])
+        resultfinal_dict['EtapaOrig'] = x.phase
+
+        resultfinal_list.append(resultfinal_dict)
+
         x = db.session.query(Evaluation).get(idEvaluation)
         x.idStatus = 3
         x.finalDate = date.today()
         db.session.commit()
-        return jsonify({'result':result_list})
+        return jsonify({'result':result_list, 'finalresult':resultfinal_list})
     except Exception as e:
         db.session.rollback()
         return jsonify({'result':[{"id":-1}]})

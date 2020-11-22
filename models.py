@@ -198,6 +198,7 @@ class NivelComponentVariable(db.Model):
     idNivelComponentVariable = db.Column(db.Integer, primary_key=True)
     minimum = db.Column(db.Float, nullable=False)
     maximum = db.Column(db.Float, nullable=False)
+    phase = db.Column(db.String(50), nullable=True)
     description = db.Column(db.String(500), nullable=True)
     def save(self):
         if not self.idNivelComponentVariable:
