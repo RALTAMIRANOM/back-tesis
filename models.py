@@ -118,6 +118,7 @@ class ObjectiveStrategic(db.Model):
     idCriterion = db.Column(db.Integer, db.ForeignKey('Criterion.idCriterion'), nullable=False)
     idEvaluation = db.Column(db.Integer, db.ForeignKey('Evaluation.idEvaluation'), nullable=False)
     description = db.Column(db.String(500), nullable=False)
+    criterion = db.relationship('Criterion')
     def save(self):
         if not self.idObjectiveStrategic:
             db.session.add(self)
@@ -190,6 +191,21 @@ class NivelComponentVariable(db.Model):
     @staticmethod
     def get_by_id(idNivelComponentVariable):
         return NivelComponentVariable.query.get(idNivelComponentVariable)
+    @staticmethod
+    def search_nivel(porcent):
+        if 0 <= porcent and 0.2 > porcent:
+            return 1
+        else:
+            if 0.2 <= porcent and 0.4 > porcent:
+                return 2
+            else:
+                if 0.4 <= porcent and 0.6 > porcent:
+                    return 3
+                else:
+                    if 0.6 <= porcent and 0.8 > porcent:
+                        return 4
+                    else:
+                        return 5
 
 class Evaluation_X_Question(db.Model):
     __tablename__ = 'Evaluation_X_Question'

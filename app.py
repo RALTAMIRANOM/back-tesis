@@ -130,6 +130,7 @@ def validated_User():
 def register_Objectives():
     data=request.get_json()
     print(data)
+    
     for objective in data['objectives']:
         objective_row = ObjectiveStrategic(idCriterion=objective['idCriterion'],
                                            idEvaluation=objective['idEvaluation'],
@@ -232,11 +233,6 @@ def consult_Questionary():
         keyComponent_list = []
         variableCritical_list = []
         first_time = True
-        #codigo
-        #nombre de key
-        #subcategorias
-            #nombre de vc
-            #preguntas :[{texto:,respuesta:, codigo:}]
 
         for questionary in questionaries:
             
@@ -311,8 +307,8 @@ def consult_Questionary():
                     questionary_dict['subcategorias'] = subcategory_list
                     questionary_list.append(questionary_dict)
         
-        print(questionary_list)
-        print(questionaries)
+        #print(questionary_list)
+        #print(questionaries)
         return jsonify({'questionary':questionary_list})
     except Exception as e:
         return jsonify({'questionary':[ {"codigo":-1}]})
@@ -337,8 +333,192 @@ def save_Answer():
         return jsonify(result={"error": 400})
 
 #consulta de evaluaciones
+
 #Enviar resultados de criterio x objetivo
+@app.route("/result", methods=["POST"])
+def result():
+    try:
+        #lista de resultado por vc
+        #ista de criterio, peso modificado , peso actual y resultado obtenido
+
+        #criterion
+        puntuation_list = puntuation()
+        #nota por variable critica
+        answer_list = answers_question()
+        result_list =[]
+        criterion_list = []
+        for punt in puntuation_list:
+
+            result_dict = {}
+            result_dict['id'] = punt['id']
+            result_dict['descripcion'] = punt['name']
+            result_dict['objetivo'] = punt['objetive']
+            result_dict['dpg'] = punt['code']
+            cont = 0
+            result_dict['nAlcanzadoOrig'] = 0
+            result_dict['nAlcanzado'] = 0
+            result_dict['nDeseadoOrig'] = 0
+            result_dict['nDeseado'] = 0
+            for answer in answer_list:
+                weightModify = punt['variableCritica'][cont]['weightModify']
+                weightOriginal = punt['variableCritica'][cont]['weightOriginal']
+                puntuac = answer['Puntuacion']
+                result_dict['nAlcanzadoOrig'] = result_dict['nAlcanzadoOrig'] + (puntuac * weightOriginal)
+                result_dict['nAlcanzado'] = result_dict['nAlcanzado'] + (puntuac * weightModify)
+                result_dict['nDeseadoOrig'] = result_dict['nDeseadoOrig'] + (5 * weightOriginal)
+                result_dict['nDeseado'] = result_dict['nDeseado'] + (5 * weightModify)
+                cont = cont + 1
+            result_dict['porcDeseado'] = 100
+            result_dict['porcAlcanzado'] = round((result_dict['nAlcanzado']/result_dict['nDeseado'])*100,1)
+            result_dict['porcDeseadoOrig'] = 100
+            result_dict['porcAlcanzadoOrig'] = round((result_dict['nAlcanzadoOrig']/result_dict['nDeseadoOrig'])*100,1)
+            result_list.append(result_dict)
+        return jsonify({'result':result_list})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'result':[{"id":-1}]})
+
+def answers_question():
+    try:
+        data=request.get_json()
+        idEvaluation = data['idEvaluation']
+        #realizar los cruces
+        questionaries = db.session.query(Evaluation_X_Question,
+        Question,CriticalVariable,KeyComponent).\
+            join(Evaluation_X_Question.question,
+            Question.criticalVariable,CriticalVariable.keyComponent).\
+                filter(Evaluation_X_Question.idEvaluation == idEvaluation).\
+                    order_by(Evaluation_X_Question.idEvaluation_X_Question.asc()).all()
+
+        variableCritical_list = []
+        puntation_list = []
+        first_time = True
+        answertrue = 0
+        total = 0
+
+        for questionary in questionaries:
+            
+            if(first_time):
+
+                #puntuación
+                puntation_dict = {}
+                puntation_dict['id'] = questionary[2].idCriticalVariable
+                puntation_dict['nombre'] = questionary[2].name
+                total = total + 1
+                if questionary[0].answer == -1:
+                    answertrue = answertrue + 0
+                else:
+                    answertrue = answertrue + questionary[0].answer
+                puntation_dict['notasSi'] = round(answertrue/total,2)
+                puntation_dict['Puntuacion'] = NivelComponentVariable.search_nivel(puntation_dict['notasSi'])
+                puntation_list.append(puntation_dict)
+
+                first_time=False
+                variableCritical_list.append(questionary[2])
+            else:
+                #se valida la variable critica
+                if(questionary[2] in variableCritical_list):
+                    
+                    total = total + 1
+                    if questionary[0].answer == -1:
+                        answertrue = answertrue + 0
+                    else:
+                        answertrue = answertrue + questionary[0].answer
+                    puntation_list[-1]['notasSi'] = round(answertrue/total,2)             
+                    puntation_list[-1]['Puntuacion'] = NivelComponentVariable.search_nivel(puntation_list[-1]['notasSi'])
+
+                else:
+                    variableCritical_list.append(questionary[2])
+                    answertrue = 0
+                    total = 0                  
+                    #puntuación
+                    puntation_dict = {}
+                    puntation_dict['id'] = questionary[2].idCriticalVariable
+                    puntation_dict['nombre'] = questionary[2].name
+                    total = total + 1
+                    if questionary[0].answer == -1:
+                        answertrue = answertrue + 0
+                    else:
+                        answertrue = answertrue + questionary[0].answer
+                    puntation_dict['notasSi'] = round(answertrue/total,2)
+                    puntation_dict['Puntuacion'] = NivelComponentVariable.search_nivel(puntation_dict['notasSi'])
+                    puntation_list.append(puntation_dict)
+        
+        #print(questionary_list)
+        #print(questionaries)
+        return puntation_list
+    except Exception as e:
+        return [{"id":-1}]
+   
+def puntuation():
+    try:
+        data=request.get_json()
+        idEvaluation = data['idEvaluation']
+        weightModifys = db.session.query(EvaluationModifiedWeight,
+        Criterion_X_CriticalVariable,Criterion).\
+        join(EvaluationModifiedWeight.criterion_X_CriticalVariable,
+        Criterion_X_CriticalVariable.criterion).\
+            filter(EvaluationModifiedWeight.idEvaluation == idEvaluation).\
+                order_by(Criterion_X_CriticalVariable.idCriterion.asc()).all() 
+        #print(questionary_list)
+        #print(questionaries)
+        objectives = db.session.query(ObjectiveStrategic,Criterion).\
+            join(ObjectiveStrategic.criterion).\
+                filter(ObjectiveStrategic.idEvaluation == idEvaluation).\
+                    order_by(ObjectiveStrategic.idCriterion.asc()).all()                    
+        print(objectives)
+        cont = 0
+        largo = 0
+        for obj in objectives:
+            largo = largo + 1
+
+        weightModifies_list=[]
+        criterion_list = []
+        first_time = True
+        for weightModify in weightModifys:
+
+            if(weightModify[2] in criterion_list):       
+
+                variableCritica_dict = {}
+                variableCritica_dict['id'] = weightModify[1].idCriticalVariable
+                variableCritica_dict['weightOriginal'] = weightModify[1].idWeight - 1
+                variableCritica_dict['weightModify'] = weightModify[0].idModifiedWeight - 1
+                weightModifies_list[-1]['variableCritica'].append(variableCritica_dict)
+
+            else:
+                criterion_list.append(weightModify[2])
+                criterion_dict = {}
+
+                #criterion
+               
+                criterion_dict['id'] = weightModify[2].idCriterion
+                criterion_dict['code'] = weightModify[2].code
+                criterion_dict['name'] = weightModify[2].name
+
+                #list weight
+                variableCritica_dict = {}
+                variableCritica_dict['id'] = weightModify[1].idCriticalVariable
+                variableCritica_dict['weightOriginal'] = weightModify[1].idWeight - 1
+                variableCritica_dict['weightModify'] = weightModify[0].idModifiedWeight - 1
+                criterion_dict['variableCritica'] = []
+                criterion_dict['variableCritica'].append(variableCritica_dict)
+                if cont < largo:
+                    if(objectives[cont][1] in criterion_list):
+                        criterion_dict['objetive'] = objectives[cont][0].description
+                        cont=cont+1
+                    else:
+                        criterion_dict['objetive'] = "Sin objetivo"
+                else:
+                    criterion_dict['objetive'] = "Sin objetivo"
+                weightModifies_list.append(criterion_dict)             
+
+        #print (weightModifys)
+        return weightModifies_list
+    except Exception as e:
+        return [{"id":-1}]
+
 #Enviar resultado global
+
 #Envair Resultado por grafico
 #@app.route("/getCriterion", methods=["GET"])
 @app.route("/getCriterion", methods=["POST"])
