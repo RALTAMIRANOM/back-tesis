@@ -212,8 +212,9 @@ def consult_Weight_Modify():
         Criterion_X_CriticalVariable.criticalVariable,CriticalVariable.keyComponent,
         EvaluationModifiedWeight.weight).\
             filter(EvaluationModifiedWeight.idEvaluation == idEvaluation).\
-                order_by(CriticalVariable.idCriticalVariable.asc()).all()    
+                order_by(CriticalVariable.idCriticalVariable.asc(), Criterion.idCriterion.asc() ).all()    
     weightModify_list = []
+    print (weightModifys)
     criticalVariable_list = []
     first_time = True
     for weightModify in weightModifys:
