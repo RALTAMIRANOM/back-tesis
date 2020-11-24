@@ -154,11 +154,12 @@ def register_Objectives():
         
         objectiveList = db.session.query(ObjectiveStrategic).filter(ObjectiveStrategic.idEvaluation == data['objectives'][0]['idEvaluation']).\
                     order_by(ObjectiveStrategic.idCriterion.asc()).all()
-
+        print(data['objectives'][0]['idEvaluation'])
+        print(objectiveList)
         for objective in data['objectives']:
             for obj in objectiveList:
                 if(obj.idCriterion == objective['idCriterion']):
-                    x = db.session.query(ObjectiveStrategic).get(obj.idCriterion)
+                    x = db.session.query(ObjectiveStrategic).get(obj.idObjectiveStrategic)
                     x.description = objective['description']
                     
         x = db.session.query(Evaluation).get(data['objectives'][0]['idEvaluation'])
