@@ -263,18 +263,30 @@ def consult_Weight_Modify():
 def modify_Weight():
     try:
         data=request.get_json()
-        listids=data['evaluationModifiedWeightId']
-        listweights=data['weights']
-        cont= 0
-        for listid in listids:
-            x = db.session.query(EvaluationModifiedWeight).get(listid)
-            x.idModifiedWeight = listweights[cont] + 1
-            cont += 1
+        weightModify_list = data['weightModify']
+        print(weightModify_list[0])
+        print(weightModify_list[1])
+        cont = 0
+        for listid in weightModify_list:
+            for listidMod in listid['evaluationModifiedWeightId']:
+                print(listidMod,'',listid['weights'][cont])                
+                x = db.session.query(EvaluationModifiedWeight).get(listidMod)
+                x.idModifiedWeight = listid['weights'][cont]+ 1
+                cont = cont + 1
+            cont = 0
         db.session.commit()
+        #listids=data['evaluationModifiedWeightId']
+        #listweights=data['weights']
+        #cont= 0
+        #for listid in listids:
+        #    x = db.session.query(EvaluationModifiedWeight).get(listid)
+        #    x.idModifiedWeight = listweights[cont] + 1
+        #    cont += 1
+        #db.session.commit()
         return jsonify(result={"status": 200})
     except Exception as e:
         db.session.rollback()
-        return jsonify(result={"error": 400})
+        return jsonify(result={"status": 400})
 
 #mandar componentes clave, variable critica -> preguntas con respuestas guardadas
 @app.route("/consultQuestionary", methods=["POST"])
