@@ -180,20 +180,17 @@ def consult_Objectives():
         objectives_list= []
         print(data)
         
-        objectiveList = db.session.query(ObjectiveStrategic,Criterion).\
-            join(ObjectiveStrategic.criterion).\
-            filter(ObjectiveStrategic.idEvaluation == idEvaluation).\
+        objectiveList = db.session.query(ObjectiveStrategic).filter(ObjectiveStrategic.idEvaluation == idEvaluation).\
                     order_by(ObjectiveStrategic.idCriterion.asc()).all()
 
-        print(objectiveList)
+
         for obj in objectiveList:
-            if(obj[0].description =="Sin Objetivo"):
+            if(obj.description =="Sin Objetivo"):
                 pass
             else:
                 obj_dict={}
-                obj_dict['idCriterion']=obj[0].idCriterion
-                obj_dict['description']=obj[0].description
-                obj_dict['code']=obj[1].code
+                obj_dict['idCriterion']=obj.idCriterion
+                obj_dict['description']=obj.description
                 objectives_list.append(obj_dict)
 
         return jsonify(result={"objectives": objectives_list})
