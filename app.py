@@ -392,18 +392,18 @@ def consult_Questionary():
 def save_Answer():
     try:
         data=request.get_json()
-        listids=data['questiontId']
-        listanswers=data['answers']
-        cont= 0
-        for listid in listids:
-            x = db.session.query(Evaluation_X_Question).get(listid)
-            x.answer = listanswers[cont]
-            cont += 1
+        questionary_list = data['questionary']
+        for keyComponent_list in questionary_list:
+            for subcategories_list in keyComponent_list['subcategorias']:
+                for question_list in subcategories_list['preguntas']:
+                    print(question_list['id'],' ',question_list['respuesta'])
+                    x = db.session.query(Evaluation_X_Question).get(question_list['id'])
+                    x.answer = question_list['respuesta']   
         db.session.commit()
         return jsonify(result={"status": 200})
     except Exception as e:
         db.session.rollback()
-        return jsonify(result={"error": 400})
+        return jsonify(result={"status": 400})
 
 #consulta de evaluaciones
 @app.route("/consultEvaluation", methods=["POST"])
