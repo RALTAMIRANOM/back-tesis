@@ -164,7 +164,8 @@ def register_Objectives():
                     
         x = db.session.query(Evaluation).get(data['objectives'][0]['idEvaluation'])
         x.idStatus = 2
-        x.idPhase = 5
+        if x.idPhase < 5 :
+            x.idPhase = 5
         db.session.commit()
 
         return jsonify(result={"status": 200})
@@ -279,7 +280,8 @@ def modify_Weight():
         db.session.commit()
 
         x = db.session.query(Evaluation).get(idEvaluation)
-        x.idPhase = 6
+        if x.idPhase < 6 :
+            x.idPhase = 6
         db.session.commit()
 
         #listids=data['evaluationModifiedWeightId']
@@ -411,7 +413,8 @@ def save_Answer():
         db.session.commit()
 
         x = db.session.query(Evaluation).get(idEvaluation)
-        x.idPhase = 7
+        if x.idPhase < 7 :
+            x.idPhase = 7
 
         db.session.commit()
 
