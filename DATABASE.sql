@@ -37,7 +37,7 @@ INSERT INTO `db-tesis2`. `Rol_X_Permission` VALUES (6,2,6);
 INSERT INTO `db-tesis2`. `KeyComponent` VALUES (1,'FCE','FACTORES CRITICOS DE EXITO','Factores Criticos de exito para determinar y calcular el exito de la adopcion de Gobierno Electronico de Ewa Ziemba');
 INSERT INTO `db-tesis2`. `KeyComponent` VALUES (2,'ME','METAS EMPRESARIALES DE COBIT','Metas empresariales de la cascada de metas de COBIT 2019');
 INSERT INTO `db-tesis2`. `KeyComponent` VALUES (3,'MA','METAS DE ALINEAMIENTO DE COBIT','Metas de alineamiento de la cascada de metas de COBIT 2019');
-INSERT INTO `db-tesis2`. `KeyComponent` VALUES (4,'PG','PRACTICAS DE GESTIoN DE ITIL','Practicas de gestion de ITIL 4');
+INSERT INTO `db-tesis2`. `KeyComponent` VALUES (4,'PG','PRACTICAS DE GESTION DE ITIL','Practicas de gestion de ITIL 4');
 INSERT INTO `db-tesis2`. `KeyComponent` VALUES (5,'PW','PAGINA WEB','Metodologia de evaluacion de la pagina web de Gonzalo Paiva Dias');
 
 /*NivelComponentVariable*/
