@@ -11,6 +11,11 @@ INSERT INTO `db-tesis2`. `Entity` VALUES (3,'Municipalidad de Comas','Plaza de A
 INSERT INTO `db-tesis2`. `Status` VALUES (1,'Nuevo');
 INSERT INTO `db-tesis2`. `Status` VALUES (2,'En proceso');
 INSERT INTO `db-tesis2`. `Status` VALUES (3,'Culminado');
+INSERT INTO `db-tesis2`. `Status` VALUES (4,'Fase: Objetivos Estrategicos');
+INSERT INTO `db-tesis2`. `Status` VALUES (5,'Fase: Puntuacion');
+INSERT INTO `db-tesis2`. `Status` VALUES (6,'Fase: Cuestionario');
+INSERT INTO `db-tesis2`. `Status` VALUES (7,'Fase: Resultado');
+
 
 /*Permission*/
 INSERT INTO `db-tesis2`. `Permission` VALUES (1,'Gestionar evaluaciones','Crear, editar y eliminar evaluaciones');

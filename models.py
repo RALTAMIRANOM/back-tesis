@@ -146,6 +146,7 @@ class Evaluation(db.Model):
     idPlan = db.Column(db.Integer, db.ForeignKey('Plan.idPlan'), nullable=False)
     idUser = db.Column(db.Integer, db.ForeignKey('User.idUser'), nullable=False)
     idStatus = db.Column(db.Integer, db.ForeignKey('Status.idStatus'), nullable=False)
+    idPhase = db.Column(db.Integer, db.ForeignKey('Status.idStatus'), nullable=False)
     initialDate = db.Column(db.DateTime, nullable=False)
     finalDate = db.Column(db.DateTime, nullable=True)
     

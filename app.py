@@ -63,7 +63,7 @@ def create_Evaluation():
         #entity_evaluation= Entity.get_by_name(nameEntity)
         #idEntity=entity_evaluation.idEntity
         #date.today().strftime("%d/%m/%Y")
-        evaluation = Evaluation(idEntity=idEntity, idPlan=idPlan,idUser=idUser,idStatus=1,initialDate=initialDate)
+        evaluation = Evaluation(idEntity=idEntity, idPlan=idPlan,idUser=idUser,idStatus=1,initialDate=initialDate,idPhase = 4)
         evaluation.save()  
         lastEvaluation=Evaluation.get_last_registration()
         criticalVariable_list =[]
@@ -164,6 +164,7 @@ def register_Objectives():
                     
         x = db.session.query(Evaluation).get(data['objectives'][0]['idEvaluation'])
         x.idStatus = 2
+        x.idPhase = 5
         db.session.commit()
 
         return jsonify(result={"status": 200})
@@ -272,9 +273,15 @@ def modify_Weight():
                 print(listidMod,'',listid['weights'][cont])                
                 x = db.session.query(EvaluationModifiedWeight).get(listidMod)
                 x.idModifiedWeight = listid['weights'][cont]+ 1
+                idEvaluation = x.idEvaluation
                 cont = cont + 1
             cont = 0
         db.session.commit()
+
+        x = db.session.query(Evaluation).get(idEvaluation)
+        x.idPhase = 6
+        db.session.commit()
+
         #listids=data['evaluationModifiedWeightId']
         #listweights=data['weights']
         #cont= 0
@@ -398,8 +405,16 @@ def save_Answer():
                 for question_list in subcategories_list['preguntas']:
                     print(question_list['id'],' ',question_list['respuesta'])
                     x = db.session.query(Evaluation_X_Question).get(question_list['id'])
-                    x.answer = question_list['respuesta']   
+                    x.answer = question_list['respuesta']
+                    idEvaluation = x.idEvaluation
+
         db.session.commit()
+
+        x = db.session.query(Evaluation).get(idEvaluation)
+        x.idPhase = 7
+
+        db.session.commit()
+
         return jsonify(result={"status": 200})
     except Exception as e:
         db.session.rollback()
@@ -425,6 +440,7 @@ def consult_Evaluation():
             x = db.session.query(Entity).get(evaluation.idEntity)
             phase_1_dict['nameEntity'] = x.name
             phase_1_dict['addressEntity'] = x.address
+            phase_1_dict['phase'] = evaluation.idPhase - 3
 
             if(evaluation.idStatus == 1):
                 phase_1_list.append(phase_1_dict)
