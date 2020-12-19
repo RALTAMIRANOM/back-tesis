@@ -516,6 +516,7 @@ def result():
         resultfinal_dict['Puntuacion'] = NivelComponentVariable.search_nivel(totalAlcanzado / total)
         x = db.session.query(NivelComponentVariable).get(resultfinal_dict['Puntuacion'])
         resultfinal_dict['Etapa'] = x.phase
+        resultfinal_dict['Description'] = x.description
 
         resultfinal_dict['nDeseadoOrigTotal'] = totalOrig
         resultfinal_dict['nAlcanzadoOrigTotal'] = totalAlcanzadoOrig
@@ -523,6 +524,7 @@ def result():
         resultfinal_dict['PuntuacionOrig']= NivelComponentVariable.search_nivel(totalAlcanzadoOrig / totalOrig)
         x = db.session.query(NivelComponentVariable).get(resultfinal_dict['PuntuacionOrig'])
         resultfinal_dict['EtapaOrig'] = x.phase
+        resultfinal_dict['DescriptionOrig'] = x.description
 
         resultfinal_list.append(resultfinal_dict)
 
