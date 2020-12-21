@@ -535,8 +535,9 @@ def result():
         resultfinal_list.append(resultfinal_dict)
 
         x = db.session.query(Evaluation).get(idEvaluation)
-        x.idStatus = 3
-        x.finalDate = date.today()
+        if x.idStatus != 3:
+            x.idStatus = 3
+            x.finalDate = date.today()
         db.session.commit()
         return jsonify({'result':result_list, 'finalresult':resultfinal_list})
     except Exception as e:
