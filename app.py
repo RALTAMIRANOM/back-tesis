@@ -512,7 +512,10 @@ def result():
 
         resultfinal_dict['nDeseadoTotal'] = total
         resultfinal_dict['nAlcanzadoTotal'] = totalAlcanzado
-        resultfinal_dict['porcTotal'] = round(totalAlcanzado / total,2)
+        print(total)
+        print(totalAlcanzado)
+        resultfinal_dict['porcTotal'] = round(totalAlcanzado / total, 2) * 100
+        print(round(totalAlcanzado / total, 2))
         resultfinal_dict['Puntuacion'] = NivelComponentVariable.search_nivel(totalAlcanzado / total)
         x = db.session.query(NivelComponentVariable).get(resultfinal_dict['Puntuacion'])
         resultfinal_dict['Etapa'] = x.phase
@@ -520,7 +523,10 @@ def result():
 
         resultfinal_dict['nDeseadoOrigTotal'] = totalOrig
         resultfinal_dict['nAlcanzadoOrigTotal'] = totalAlcanzadoOrig
-        resultfinal_dict['porcOrigTotal'] = round(totalAlcanzadoOrig / totalOrig,2)
+        print(totalOrig)
+        print(totalAlcanzadoOrig)
+        resultfinal_dict['porcOrigTotal'] = round(totalAlcanzadoOrig / totalOrig, 2) * 100
+        print(round(totalAlcanzadoOrig / totalOrig, 2))
         resultfinal_dict['PuntuacionOrig']= NivelComponentVariable.search_nivel(totalAlcanzadoOrig / totalOrig)
         x = db.session.query(NivelComponentVariable).get(resultfinal_dict['PuntuacionOrig'])
         resultfinal_dict['EtapaOrig'] = x.phase
@@ -699,7 +705,6 @@ def test():
 @app.route("/",methods=["GET"])
 def hello_world():
     return 'Hello, World!'
-    
 
 if __name__ == "__main__":
     
