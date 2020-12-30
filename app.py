@@ -457,7 +457,7 @@ def consult_Evaluation():
         return jsonify(result={"error": 400})
 
 #Enviar resultados de criterio x objetivo
-@app.route("/result", methods=["POST"])
+@app.route("/result", methods=["POST","OPTIONS"])
 def result():
     try:
         #lista de resultado por vc
@@ -465,128 +465,9 @@ def result():
         data=request.get_json()
         idEvaluation = data['idEvaluation']
         #criterion
-        #
-        weightModifys = db.session.query(EvaluationModifiedWeight,
-        Criterion_X_CriticalVariable,Criterion).\
-        join(EvaluationModifiedWeight.criterion_X_CriticalVariable,
-        Criterion_X_CriticalVariable.criterion).\
-            filter(EvaluationModifiedWeight.idEvaluation == idEvaluation).\
-                order_by(Criterion_X_CriticalVariable.idCriterion.asc()).all() 
-        #print(questionary_list)
-        #print(questionaries)
-        objectives = db.session.query(ObjectiveStrategic,Criterion).\
-            join(ObjectiveStrategic.criterion).\
-                filter(ObjectiveStrategic.idEvaluation == idEvaluation).\
-                    order_by(ObjectiveStrategic.idCriterion.asc()).all()                    
-        print(objectives)
-        cont = 0
-
-        weightModifies_list=[]
-        criterion_list = []
-        first_time = True
-        for weightModify in weightModifys:
-
-            if(weightModify[2] in criterion_list):       
-
-                variableCritica_dict = {}
-                variableCritica_dict['id'] = weightModify[1].idCriticalVariable
-                variableCritica_dict['weightOriginal'] = weightModify[1].idWeight - 1
-                variableCritica_dict['weightModify'] = weightModify[0].idModifiedWeight - 1
-                weightModifies_list[-1]['variableCritica'].append(variableCritica_dict)
-
-            else:
-                criterion_list.append(weightModify[2])
-                criterion_dict = {}
-
-                #criterion
-               
-                criterion_dict['id'] = weightModify[2].idCriterion
-                criterion_dict['code'] = weightModify[2].code
-                criterion_dict['name'] = weightModify[2].name
-
-                #list weight
-                variableCritica_dict = {}
-                variableCritica_dict['id'] = weightModify[1].idCriticalVariable
-                variableCritica_dict['weightOriginal'] = weightModify[1].idWeight - 1
-                variableCritica_dict['weightModify'] = weightModify[0].idModifiedWeight - 1
-                criterion_dict['variableCritica'] = []
-                criterion_dict['variableCritica'].append(variableCritica_dict)
-
-                criterion_dict['objetive'] = objectives[cont][0].description
-                cont=cont+1
-
-                weightModifies_list.append(criterion_dict)             
-
-        #
-        #puntuation_list = puntuation()
-        puntuation_list = weightModifies_list
+        puntuation_list = puntuation()
         #nota por variable critica
-        
-        #
-        questionaries = db.session.query(Evaluation_X_Question,
-        Question,CriticalVariable,KeyComponent).\
-            join(Evaluation_X_Question.question,
-            Question.criticalVariable,CriticalVariable.keyComponent).\
-                filter(Evaluation_X_Question.idEvaluation == idEvaluation).\
-                    order_by(Evaluation_X_Question.idEvaluation_X_Question.asc()).all()
-
-        variableCritical_list = []
-        puntation_list = []
-        first_time = True
-        answertrue = 0
-        total = 0
-
-        for questionary in questionaries:
-            
-            if(first_time):
-
-                #puntuacion
-                puntation_dict = {}
-                puntation_dict['id'] = questionary[2].idCriticalVariable
-                puntation_dict['nombre'] = questionary[2].name
-                total = total + 1
-                if questionary[0].answer == -1:
-                    answertrue = answertrue + 0
-                else:
-                    answertrue = answertrue + questionary[0].answer
-                puntation_dict['notasSi'] = round(answertrue/total,2)
-                puntation_dict['Puntuacion'] = NivelComponentVariable.search_nivel(puntation_dict['notasSi'])
-                puntation_list.append(puntation_dict)
-
-                first_time=False
-                variableCritical_list.append(questionary[2])
-            else:
-                #se valida la variable critica
-                if(questionary[2] in variableCritical_list):
-                    
-                    total = total + 1
-                    if questionary[0].answer == -1:
-                        answertrue = answertrue + 0
-                    else:
-                        answertrue = answertrue + questionary[0].answer
-                    puntation_list[-1]['notasSi'] = round(answertrue/total,2)             
-                    puntation_list[-1]['Puntuacion'] = NivelComponentVariable.search_nivel(puntation_list[-1]['notasSi'])
-
-                else:
-                    variableCritical_list.append(questionary[2])
-                    answertrue = 0
-                    total = 0                  
-                    #puntuacion
-                    puntation_dict = {}
-                    puntation_dict['id'] = questionary[2].idCriticalVariable
-                    puntation_dict['nombre'] = questionary[2].name
-                    total = total + 1
-                    if questionary[0].answer == -1:
-                        answertrue = answertrue + 0
-                    else:
-                        answertrue = answertrue + questionary[0].answer
-                    puntation_dict['notasSi'] = round(answertrue/total,2)
-                    puntation_dict['Puntuacion'] = NivelComponentVariable.search_nivel(puntation_dict['notasSi'])
-                    puntation_list.append(puntation_dict)
-        #
-        #answer_list = answers_question()
-        answer_list = puntation_list
-
+        answer_list = answers_question()
         result_list =[]
         criterion_list = []
         resultfinal_list =[]
